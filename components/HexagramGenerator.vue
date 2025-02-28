@@ -35,7 +35,6 @@
   import { ref } from 'vue';
   import { Lunar } from 'lunar-typescript';
   import hexagrams from '@/data/hexagrams';
-  import { HourZodiac, Hexagram, Trigram } from '@/types';
   import RenderHexagram from '@/components/RenderHexagram.vue';
   
   const hourZodiacMap = [
