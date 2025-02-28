@@ -160,8 +160,6 @@ button:hover {
         hexagram
       };
 
-      return;
-
       const handleAIError = (code) => {
         const errorMap = {
           'invalid_api_key': 'AI密钥无效',
