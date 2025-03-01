@@ -10,7 +10,7 @@ const openai = new OpenAI({
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event); // 读取请求体
-    const { prompt } = body;
+    const { name, judgment, movingLine, line, xiang } = body;
 
     const completion = await openai.chat.completions.create({
       model: "deepseek-reasoner", // 推荐使用最新模型
@@ -28,7 +28,12 @@ export default defineEventHandler(async (event) => {
         },
         {
           role: "user",
-          content: prompt,
+          content: `解析卦象：
+          【主卦】${name}
+          【卦辞】"${judgment}"
+          【动爻】第${movingLine}爻："${line}
+          【象辞】"${xiang}"
+          请用专业周易知识综合分析，生成20字运势总结"`,
         },
       ],
       temperature: 0.8,

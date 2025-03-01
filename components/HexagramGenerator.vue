@@ -175,12 +175,11 @@ button:hover {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `解析卦象：
-          【主卦】${hexagram.name}
-          【卦辞】"${hexagram.judgment}"
-          【动爻】第${movingLine}爻："${hexagram.lines[movingLine - 1]}
-          【象辞】"${hexagram.xiang}"
-          请用专业周易知识综合分析，生成20字运势总结"`
+          name: hexagram.name,
+          judgment: hexagram.judgment,
+          movingLine: movingLine,
+          line: hexagram.lines[movingLine - 1],
+          xiang: hexagram.xiang,
         })
       });
 
