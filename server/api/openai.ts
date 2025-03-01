@@ -1,5 +1,7 @@
 import { OpenAI } from "openai";
 
+export const maxDuration = 60;
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   baseURL: process.env.OPENAI_BASE_URL, // 若使用代理需配置
