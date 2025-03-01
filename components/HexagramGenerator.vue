@@ -1,7 +1,7 @@
 <template>
     <div class="container">
       <button @click="generateHexagram" v-if="!result && !loading">
-        {{ loading ? '生成中...' : '获取卦象' }}
+        获取卦象
       </button>
 
       <div v-if="result" class="result">
@@ -27,7 +27,7 @@
         <div v-if="aiResult" class="ai-result">
           <p>{{ aiResult }}</p>
         </div>
-        <div v-else-if="loading && !aiResult" class="center">
+        <div v-else-if="loading" class="center">
           <div>
             <IOSSpinner />
           </div>
