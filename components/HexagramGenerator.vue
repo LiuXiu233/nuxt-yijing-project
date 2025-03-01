@@ -108,6 +108,22 @@ button:hover {
   const aiResult = ref('');
   const loading = ref(false);
 
+  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+  // Load reCAPTCHA script if not already loaded
+  const loadRecaptcha = () => {
+    if (document.getElementById('recaptcha-script')) return;
+
+    const script = document.createElement('script');
+    script.id = 'recaptcha-script';
+    script.src = import.meta.env.VITE_RECAPTCHA_BASE_URL + `recaptcha/api.js?render=${recaptchaSiteKey}`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  };
+
+  onMounted(loadRecaptcha);
+
   function getCurrentZodiacHour(date) {
     const hour = date.getHours();
     const minute = date.getMinutes();
@@ -171,10 +187,22 @@ button:hover {
         loading.value = false;
       };
 
+      // Get reCAPTCHA token
+      const recaptchaToken = await new Promise((resolve, reject) => {
+        if (!window.grecaptcha) return reject('reCAPTCHA not loaded');
+
+        window.grecaptcha.ready(() => {
+          window.grecaptcha.execute(recaptchaSiteKey, { action: 'submit' })
+              .then(resolve)
+              .catch(reject);
+        });
+      });
+
       const response = await fetch('/api/openai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          recaptchaToken,
           name: hexagram.name,
           judgment: hexagram.judgment,
           movingLine: movingLine,

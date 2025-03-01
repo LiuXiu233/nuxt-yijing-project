@@ -4,16 +4,35 @@ export const maxDuration = 60;
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.OPENAI_BASE_URL, // 若使用代理需配置
+  baseURL: process.env.OPENAI_BASE_URL,
 });
+
+const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
+const RECAPTCHA_VERIFY_URL = process.env.RECAPTCHA_BASE_URL + 'recaptcha/api/siteverify';
 
 export default defineEventHandler(async (event) => {
   try {
-    const body = await readBody(event); // 读取请求体
-    const { name, judgment, movingLine, line, xiang } = body;
+    const body = await readBody(event);
+    const { recaptchaToken, name, judgment, movingLine, line, xiang } = body;
 
+    // Verify reCAPTCHA token
+    const recaptchaRes = await fetch(`${RECAPTCHA_VERIFY_URL}?secret=${RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`, {
+      method: "POST",
+    });
+
+    const recaptchaData = await recaptchaRes.json();
+
+    if (!recaptchaData.success) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "reCAPTCHA verification failed",
+      });
+    }
+
+
+    // Proceed with OpenAI request if reCAPTCHA is valid
     const completion = await openai.chat.completions.create({
-      model: "deepseek-reasoner", // 推荐使用最新模型
+      model: "deepseek-reasoner",
       messages: [
         {
           role: "system",
@@ -31,26 +50,23 @@ export default defineEventHandler(async (event) => {
           content: `解析卦象：
           【主卦】${name}
           【卦辞】"${judgment}"
-          【动爻】第${movingLine}爻："${line}
+          【动爻】第${movingLine}爻："${line}"
           【象辞】"${xiang}"
           请用专业周易知识综合分析，生成20字运势总结"`,
         },
       ],
       temperature: 0.8,
       max_tokens: 50,
-      response_format: { type: "text" }, // 强制文本输出
+      response_format: { type: "text" },
     });
 
-    // 处理 OpenAI 响应结构
     const result = completion.choices[0].message.content
-      ?.trim()
-      .replace(/["【】]/g, "");
+        ?.trim()
+        .replace(/["【】]/g, "");
 
-    return {
-      result,
-    };
-  } catch (error: any) {
-    console.error("OpenAI API Error:", error);
+    return { result };
+  } catch (error) {
+    console.error("Server Error:", error);
     return sendError(event, createError({
       statusCode: error.status || 500,
       statusMessage: error.message || "AI 服务暂时不可用",
